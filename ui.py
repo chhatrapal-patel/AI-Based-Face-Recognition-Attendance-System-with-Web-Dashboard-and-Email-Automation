@@ -1,0 +1,1087 @@
+import streamlit as st
+import pandas as pd
+import os
+import subprocess
+import time
+import csv
+from datetime import datetime
+
+# ---------------- Page Config ----------------
+st.set_page_config(
+    page_title="FaceTrack Pro - Smart Attendance System", 
+    layout="wide",
+    initial_sidebar_state="collapsed",
+    page_icon="🔍"
+)
+
+# ---------------- Enhanced Professional CSS ----------------
+st.markdown("""
+<style>
+    /* Import Professional Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap');
+    
+    /* Reset and Base Styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    html, body {
+        scroll-behavior: smooth;
+    }
+    
+    /* Main Background with Better Contrast */
+    .main {
+        background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 25%, #2d1b69 50%, #1a1f2e 75%, #0f1419 100%);
+        background-size: 400% 400%;
+        animation: gradient-shift 15s ease infinite;
+        font-family: 'Inter', sans-serif;
+        position: relative;
+        min-height: 100vh;
+        color: #ffffff;
+    }
+    
+    @keyframes gradient-shift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* Particle Background Effect */
+    .main::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(120, 200, 255, 0.2) 0%, transparent 50%);
+        animation: particles-float 20s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+    }
+    
+    @keyframes particles-float {
+        0%, 100% { 
+            transform: translateX(0px) translateY(0px) rotate(0deg);
+            opacity: 0.7;
+        }
+        33% { 
+            transform: translateX(30px) translateY(-30px) rotate(120deg);
+            opacity: 1;
+        }
+        66% { 
+            transform: translateX(-20px) translateY(20px) rotate(240deg);
+            opacity: 0.8;
+        }
+    }
+    
+    /* Website Header */
+    .website-header {
+        background: rgba(15, 20, 25, 0.95);
+        backdrop-filter: blur(20px);
+        border-bottom: 2px solid rgba(120, 119, 198, 0.2);
+        padding: 1rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        animation: header-slide-down 1s ease-out;
+    }
+    
+    @keyframes header-slide-down {
+        from {
+            opacity: 0;
+            transform: translateY(-100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 2rem;
+    }
+    
+    .logo-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .logo {
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #4f96ff 0%, #8b5cf6 50%, #ff6b9d 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-family: 'Playfair Display', serif;
+    }
+    
+    .nav-menu {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+    }
+    
+    .nav-item {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .nav-item:hover {
+        color: #ffffff;
+        background: rgba(120, 119, 198, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .nav-item.active {
+        background: linear-gradient(135deg, rgba(79, 150, 255, 0.3), rgba(139, 92, 246, 0.3));
+        color: #ffffff;
+    }
+    
+    /* Enhanced Container */
+    .block-container {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 3rem;
+        margin: 2rem;
+        box-shadow: 
+            0 20px 60px rgba(0, 0, 0, 0.3),
+            0 8px 32px rgba(120, 119, 198, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        animation: container-materialize 1.5s ease-out;
+        position: relative;
+        z-index: 10;
+    }
+    
+    @keyframes container-materialize {
+        from {
+            opacity: 0;
+            transform: translateY(50px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    /* Hero Section */
+    .hero-section {
+        text-align: center;
+        padding: 4rem 0;
+        background: linear-gradient(135deg, rgba(15, 20, 25, 0.8), rgba(26, 31, 46, 0.6));
+        border-radius: 20px;
+        margin: 2rem 0;
+        border: 1px solid rgba(120, 119, 198, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: conic-gradient(from 0deg, transparent, rgba(79, 150, 255, 0.1), transparent);
+        animation: hero-rotate 20s linear infinite;
+        z-index: -1;
+    }
+    
+    @keyframes hero-rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Enhanced Title */
+    .main-title {
+        font-size: 4rem;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        background: linear-gradient(135deg, #ffffff 0%, #4f96ff 30%, #8b5cf6 60%, #ff6b9d 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+        animation: title-glow 2s ease-out;
+        letter-spacing: -1px;
+        text-shadow: 0 0 50px rgba(79, 150, 255, 0.3);
+    }
+    
+    @keyframes title-glow {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.9);
+            filter: blur(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+        }
+    }
+    
+    /* Enhanced Subtitle */
+    .subtitle {
+        font-size: 1.3rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 3rem;
+        font-weight: 400;
+        letter-spacing: 0.5px;
+        animation: subtitle-rise 2.5s ease-out;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+    }
+    
+    @keyframes subtitle-rise {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+*    
+    /* Enhanced Buttons */
+    .stButton > button {
+        background: linear-gradient(135deg, #4f96ff 0%, #8b5cf6 100%);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        padding: 1rem 2.5rem;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 1.1rem;
+        letter-spacing: 0.3px;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        width: 100%;
+        margin: 0.5rem 0;
+        box-shadow: 
+            0 8px 32px rgba(79, 150, 255, 0.4),
+            0 4px 16px rgba(139, 92, 246, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stButton > button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.6s;
+    }
+    
+    .stButton > button:hover::before {
+        left: 100%;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 
+            0 12px 40px rgba(79, 150, 255, 0.6),
+            0 8px 25px rgba(139, 92, 246, 0.4);
+        background: linear-gradient(135deg, #5ba3ff 0%, #9d6bff 100%);
+    }
+    
+    .stButton > button:active {
+        transform: translateY(-1px) scale(1.01);
+        transition: transform 0.1s;
+    }
+    
+    /* Premium Stats Cards */
+    .stats-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(120, 119, 198, 0.05) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 2.5rem;
+        text-align: center;
+        margin: 1rem 0;
+        box-shadow: 
+            0 10px 40px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        transition: all 0.4s ease;
+        animation: card-materialize 1s ease-out;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(79, 150, 255, 0.1), 
+            rgba(139, 92, 246, 0.1),
+            transparent);
+        animation: card-shimmer 4s ease-in-out infinite;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 
+            0 20px 60px rgba(0, 0, 0, 0.3),
+            0 10px 40px rgba(79, 150, 255, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        border-color: rgba(79, 150, 255, 0.3);
+    }
+    
+    @keyframes card-materialize {
+        from {
+            opacity: 0;
+            transform: translateY(40px) rotateX(20deg);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) rotateX(0deg);
+        }
+    }
+    
+    @keyframes card-shimmer {
+        0% { left: -100%; }
+        50% { left: 100%; }
+        100% { left: 100%; }
+    }
+    
+    .stats-number {
+        font-size: 3.5rem;
+        font-family: 'Inter', sans-serif;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ffffff 0%, #4f96ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+        animation: number-pulse 2s ease-out;
+        text-shadow: 0 0 30px rgba(79, 150, 255, 0.3);
+    }
+    
+    .stats-label {
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-top: 0.5rem;
+    }
+    
+    @keyframes number-pulse {
+        from {
+            opacity: 0;
+            transform: scale(0.5);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    /* Enhanced Section Headers */
+    .section-header {
+        font-size: 2.5rem;
+        font-family: 'Playfair Display', serif;
+        font-weight: 600;
+        background: linear-gradient(135deg, #ffffff 0%, #4f96ff 50%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 3rem 0 2rem 0;
+        text-align: center;
+        position: relative;
+        animation: header-glow 1.5s ease-out;
+    }
+    
+    .section-header::after {
+        content: '';
+        position: absolute;
+        bottom: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: linear-gradient(135deg, #4f96ff, #8b5cf6);
+        border-radius: 2px;
+        animation: underline-expand 2s ease-out;
+    }
+    
+    @keyframes header-glow {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+            filter: blur(5px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+        }
+    }
+    
+    @keyframes underline-expand {
+        from { width: 0; }
+        to { width: 100px; }
+    }
+    
+    /* Subject Selection Card */
+    .subject-card {
+        background: linear-gradient(135deg, rgba(79, 150, 255, 0.1), rgba(139, 92, 246, 0.1));
+        border: 2px solid rgba(79, 150, 255, 0.3);
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 2rem 0;
+        text-align: center;
+        animation: subject-glow 2s ease-out;
+        backdrop-filter: blur(15px);
+    }
+    
+    .subject-card h3 {
+        color: #ffffff;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        font-family: 'Playfair Display', serif;
+    }
+    
+    @keyframes subject-glow {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Premium Live Feed */
+    .live-feed-container {
+        border: 2px solid rgba(79, 150, 255, 0.3);
+        border-radius: 20px;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.3);
+        box-shadow: 
+            0 20px 60px rgba(0, 0, 0, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        transition: all 0.4s ease;
+        animation: feed-emerge 1.5s ease-out;
+        position: relative;
+    }
+    
+    .live-feed-container::before {
+        content: '';
+        position: absolute;
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        bottom: -3px;
+        background: linear-gradient(45deg, #4f96ff, #8b5cf6, #ff6b9d, #4f96ff);
+        background-size: 300% 300%;
+        border-radius: 25px;
+        z-index: -1;
+        animation: border-flow 6s ease-in-out infinite;
+    }
+    
+    .live-feed-container:hover {
+        transform: scale(1.02);
+        box-shadow: 
+            0 30px 80px rgba(0, 0, 0, 0.5),
+            0 15px 50px rgba(79, 150, 255, 0.3);
+    }
+    
+    @keyframes feed-emerge {
+        from {
+            opacity: 0;
+            transform: scale(0.9) rotateY(20deg);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) rotateY(0deg);
+        }
+    }
+    
+    @keyframes border-flow {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    
+    /* Enhanced Status Indicators */
+    .status-running {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        display: inline-block;
+        animation: status-pulse 2s ease-in-out infinite;
+        box-shadow: 
+            0 8px 25px rgba(40, 167, 69, 0.4),
+            0 4px 15px rgba(32, 201, 151, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .status-stopped {
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+        color: white;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        display: inline-block;
+        animation: status-fade 1.5s ease-in-out infinite;
+        box-shadow: 
+            0 8px 25px rgba(220, 53, 69, 0.4),
+            0 4px 15px rgba(231, 76, 60, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+    
+    @keyframes status-pulse {
+        0%, 100% { 
+            transform: scale(1);
+            box-shadow: 
+                0 8px 25px rgba(40, 167, 69, 0.4),
+                0 4px 15px rgba(32, 201, 151, 0.3);
+        }
+        50% { 
+            transform: scale(1.05);
+            box-shadow: 
+                0 12px 35px rgba(40, 167, 69, 0.6),
+                0 8px 25px rgba(32, 201, 151, 0.5);
+        }
+    }
+    
+    @keyframes status-fade {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    /* Premium Table Styling */
+    [data-testid="stDataFrame"] {
+        border: 1px solid rgba(79, 150, 255, 0.2);
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 
+            0 10px 40px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        animation: table-materialize 1.5s ease-out;
+        background: rgba(255, 255, 255, 0.02) !important;
+    }
+    
+    [data-testid="stDataFrame"] table {
+        background: transparent !important;
+    }
+    
+    [data-testid="stDataFrame"] table th {
+        background: linear-gradient(135deg, rgba(79, 150, 255, 0.1), rgba(139, 92, 246, 0.1)) !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+        font-size: 0.9rem !important;
+        border: none !important;
+        padding: 1rem !important;
+    }
+    
+    [data-testid="stDataFrame"] table td {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-family: 'Inter', sans-serif !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        padding: 1rem !important;
+        background: transparent !important;
+    }
+    
+    [data-testid="stDataFrame"] table tr:hover td {
+        background: rgba(79, 150, 255, 0.1) !important;
+        color: rgba(255, 255, 255, 1) !important;
+    }
+    
+    @keyframes table-materialize {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Enhanced Text Styling */
+    .stMarkdown p, .stMarkdown div, .stText {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+    }
+    
+    .stCaption {
+        color: rgba(255, 255, 255, 0.6) !important;
+        font-weight: 400;
+        text-align: center;
+        margin-top: 1rem;
+        font-style: italic;
+    }
+    
+    /* Premium Messages */
+    [data-testid="stAlert"], [data-testid="stInfo"] {
+        background: linear-gradient(135deg, rgba(79, 150, 255, 0.1), rgba(139, 92, 246, 0.1)) !important;
+        border: 1px solid rgba(79, 150, 255, 0.3) !important;
+        border-radius: 15px !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+        animation: message-slide-in 0.6s ease-out;
+        backdrop-filter: blur(10px);
+    }
+    
+    [data-testid="stSuccess"] {
+        background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(32, 201, 151, 0.1)) !important;
+        border: 1px solid rgba(40, 167, 69, 0.4) !important;
+        color: rgba(72, 255, 119, 0.9) !important;
+    }
+    
+    [data-testid="stWarning"] {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 176, 0, 0.1)) !important;
+        border: 1px solid rgba(255, 193, 7, 0.4) !important;
+        color: rgba(255, 230, 100, 0.9) !important;
+    }
+    
+    [data-testid="stError"] {
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(231, 76, 60, 0.1)) !important;
+        border: 1px solid rgba(220, 53, 69, 0.4) !important;
+        color: rgba(255, 120, 120, 0.9) !important;
+    }
+    
+    @keyframes message-slide-in {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    /* SelectBox Styling */
+    .stSelectbox > div > div {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(79, 150, 255, 0.05)) !important;
+        border: 1px solid rgba(79, 150, 255, 0.3) !important;
+        border-radius: 15px !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+        backdrop-filter: blur(10px);
+    }
+    
+    .stSelectbox label {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+    }
+    
+    /* Premium Divider */
+    hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(79, 150, 255, 0.5), 
+            rgba(139, 92, 246, 0.5), 
+            rgba(255, 107, 157, 0.5),
+            transparent);
+        margin: 4rem 0;
+        animation: divider-glow 3s ease-out;
+        border-radius: 1px;
+    }
+    
+    @keyframes divider-glow {
+        from { 
+            opacity: 0;
+            filter: blur(5px);
+        }
+        to { 
+            opacity: 1;
+            filter: blur(0);
+        }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .main-title {
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+        }
+        
+        .section-header {
+            font-size: 2rem;
+        }
+        
+        .header-content {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .nav-menu {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .block-container {
+            margin: 1rem;
+            padding: 2rem;
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+        }
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------- Website Header ----------------
+st.markdown("""
+<div class="website-header">
+    <div class="header-content">
+        <div class="logo-section">
+            <div class="logo">FaceTrack Pro</div>
+        </div>
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active">Dashboard</a>
+            <a href="#" class="nav-item">Analytics</a>
+            <a href="#" class="nav-item">Reports</a>
+            <a href="#" class="nav-item">Settings</a>
+            <a href="#" class="nav-item">Support</a>
+        </nav>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ---------------- Hero Section ----------------
+st.markdown("""
+<div class="hero-section">
+    <h1 class="main-title">Smart Attendance System</h1>
+    <p class="subtitle">Advanced AI-powered face recognition technology for seamless, secure, and intelligent attendance management across enterprise environments</p>
+</div>
+""", unsafe_allow_html=True)
+
+# ---------------- Paths ----------------
+main_python = "/usr/bin/python3"  # Path to Python executable
+main_script = "main.py"           # Your main face recognition script
+attendance_base_folder = "attendance"
+os.makedirs(attendance_base_folder, exist_ok=True)
+frame_file = "live.jpg"           # main.py must save live frames here
+
+# ---------------- Session State ----------------
+if "process" not in st.session_state:
+    st.session_state.process = None
+if "selected_subject" not in st.session_state:
+    st.session_state.selected_subject = ""
+if "current_subject" not in st.session_state:
+    st.session_state.current_subject = ""
+
+# Check if process is still running
+if st.session_state.process is not None:
+    if st.session_state.process.poll() is not None:
+        st.session_state.process = None
+
+# ---------------- Subject Selection Section ----------------
+st.markdown('<h2 class="section-header">📚 Subject Selection</h2>', unsafe_allow_html=True)
+
+st.markdown("""
+<div class="subject-card">
+    <h3>Select Subject for Attendance</h3>
+    <p>Choose the subject for which you want to mark attendance. Each subject will have its own attendance records.</p>
+</div>
+""", unsafe_allow_html=True)
+
+# Subject selection
+subjects = [
+    "Mathematics", "Physics", "Chemistry", "Biology", "Computer Science", 
+    "English", "History", "Geography", "Economics", "Psychology",
+    "Engineering", "Data Science", "Machine Learning", "Web Development", "Database Management"
+]
+
+col1, col2 = st.columns([2, 1])
+
+with col1:
+    selected_subject = st.selectbox(
+        "Choose Subject:",
+        options=["Select a subject..."] + subjects,
+        index=0 if not st.session_state.selected_subject else subjects.index(st.session_state.selected_subject) + 1,
+        key="subject_selector"
+    )
+
+with col2:
+    # Custom subject input
+    custom_subject = st.text_input("Or enter custom subject:", placeholder="e.g., Advanced AI")
+
+# Update selected subject
+if custom_subject and custom_subject.strip():
+    st.session_state.selected_subject = custom_subject.strip()
+elif selected_subject != "Select a subject...":
+    st.session_state.selected_subject = selected_subject
+
+# ---------------- Real-time Dashboard ----------------
+st.markdown('<h2 class="section-header">System Dashboard</h2>', unsafe_allow_html=True)
+
+status_col1, status_col2, status_col3, status_col4 = st.columns([1, 1, 1, 1])
+
+with status_col1:
+    current_time = datetime.now().strftime("%H:%M:%S")
+    st.markdown(f"""
+    <div class="stats-card">
+        <div class="stats-number">{current_time}</div>
+        <div class="stats-label">Current Time</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with status_col2:
+    # Display current subject
+    current_subj_display = st.session_state.current_subject if st.session_state.current_subject else "None"
+    st.markdown(f"""
+    <div class="stats-card">
+        <div class="stats-number" style="font-size: 1.8rem;">{current_subj_display}</div>
+        <div class="stats-label">Active Subject</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with status_col3:
+    # Count attendance records for current subject
+    record_count = 0
+    if st.session_state.current_subject:
+        subject_folder = os.path.join(attendance_base_folder, st.session_state.current_subject)
+        if os.path.exists(subject_folder):
+            files = [f for f in os.listdir(subject_folder) if f.endswith(".csv")]
+            if files:
+                latest_file = os.path.join(subject_folder, max(files, key=lambda x: os.path.getmtime(os.path.join(subject_folder, x))))
+                try:
+                    df_count = pd.read_csv(latest_file, engine="python", on_bad_lines="skip")
+                    record_count = len(df_count)
+                except:
+                    record_count = 0
+    
+    st.markdown(f"""
+    <div class="stats-card">
+        <div class="stats-number">{record_count}</div>
+        <div class="stats-label">Records Today</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with status_col4:
+    system_status = "Online" if st.session_state.process is not None else "Offline"
+    status_class = "status-running" if st.session_state.process is not None else "status-stopped"
+    
+    st.markdown(f"""
+    <div class="stats-card">
+        <div class="{status_class}" style="margin-bottom: 1rem;">
+            {system_status}
+        </div>
+        <div class="stats-label">System Status</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ---------------- Control Panel ----------------
+st.markdown("---")
+st.markdown('<h2 class="section-header">System Controls</h2>', unsafe_allow_html=True)
+
+control_col1, control_col2, control_col3 = st.columns([1, 1, 1])
+
+with control_col1:
+    if st.button("🚀 Start Recognition", key="start_btn"):
+        if not st.session_state.selected_subject:
+            st.error("❌ Please select a subject before starting recognition!")
+        elif st.session_state.process is None:
+            try:
+                st.session_state.process = subprocess.Popen([main_python, main_script, st.session_state.selected_subject])
+                st.session_state.current_subject = st.session_state.selected_subject
+                st.success(f"🎯 Face recognition started for {st.session_state.selected_subject}!")
+                time.sleep(1)
+                st.rerun()
+            except Exception as e:
+                st.error(f"❌ Error starting face recognition: {e}")
+        else:
+            st.warning("⚠️ Face recognition is already running!")
+
+with control_col2:
+    if st.button("🛑 Stop Recognition", key="stop_btn"):
+        if st.session_state.process is not None:
+            try:
+                st.session_state.process.terminate()
+                st.session_state.process = None
+                st.success("✅ Face recognition stopped successfully!")
+                time.sleep(1)
+                st.rerun()
+            except Exception as e:
+                st.error(f"❌ Error stopping face recognition: {e}")
+        else:
+            st.warning("⚠️ No active recognition process!")
+
+with control_col3:
+    refresh = st.checkbox("🔄 Enable Live Updates", value=True, key="refresh_check")
+
+st.markdown("---")
+
+# ---------------- Main Content Layout ----------------
+main_col1, main_col2 = st.columns([1.4, 1])
+
+with main_col1:
+    st.markdown('<h2 class="section-header">🎥 Live Camera Feed</h2>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="live-feed-container">', unsafe_allow_html=True)
+    frame_placeholder = st.empty()
+    
+    # Display live camera frame
+    if os.path.exists(frame_file) and os.path.getsize(frame_file) > 0:
+        try:
+            frame_placeholder.image(
+                frame_file, 
+                channels="BGR", 
+                use_container_width=True,
+                caption=f"🔴 Live Feed - {st.session_state.current_subject if st.session_state.current_subject else 'No Subject Selected'}"
+            )
+        except Exception as e:
+            frame_placeholder.error(f"❌ Error loading camera frame: {e}")
+    else:
+        frame_placeholder.info("📡 Waiting for camera feed from main.py...")
+        
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with main_col2:
+    st.markdown('<h2 class="section-header">📊 Attendance Records</h2>', unsafe_allow_html=True)
+    
+    table_placeholder = st.empty()
+    
+    # Display attendance records for current subject
+    if st.session_state.current_subject:
+        subject_folder = os.path.join(attendance_base_folder, st.session_state.current_subject)
+        
+        if os.path.exists(subject_folder):
+            files = sorted(
+                [f for f in os.listdir(subject_folder) if f.endswith(".csv")],
+                key=lambda x: os.path.getmtime(os.path.join(subject_folder, x)),
+                reverse=True
+            )
+
+            if files:
+                latest_file = os.path.join(subject_folder, files[0])
+                try:
+                    # Auto-detect delimiter
+                    with open(latest_file, "r", newline="", encoding="utf-8") as f:
+                        sample = f.read(1024)
+                        f.seek(0)
+                        try:
+                            dialect = csv.Sniffer().sniff(sample)
+                            sep = dialect.delimiter
+                        except csv.Error:
+                            sep = ","  # fallback to comma
+
+                        # Read CSV safely, skipping malformed rows
+                        df = pd.read_csv(f, engine="python", header=None, sep=sep, on_bad_lines="skip")
+
+                    # Assign column names dynamically
+                    if df.shape[1] >= 3:
+                        df.columns = ["👤 Name", "📚 Subject", "⏰ Timestamp"] + [f"📋 Extra {i-2}" for i in range(3, df.shape[1])]
+                    elif df.shape[1] == 2:
+                        df.columns = ["👤 Name", "⏰ Timestamp"]
+                    else:
+                        df.columns = ["👤 Name"] + [f"📋 Col {i}" for i in range(1, df.shape[1])]
+
+                    # Style the dataframe
+                    table_placeholder.dataframe(
+                        df, 
+                        use_container_width=True,
+                        hide_index=True
+                    )
+                    
+                    # Display file info
+                    file_time = datetime.fromtimestamp(os.path.getmtime(latest_file)).strftime("%Y-%m-%d %H:%M:%S")
+                    st.caption(f"📁 Latest file: {files[0]} | 🕐 Last updated: {file_time}")
+                    
+                except Exception as e:
+                    table_placeholder.error(f"❌ Error reading attendance file: {e}")
+            else:
+                table_placeholder.info(f"📝 No attendance records found for {st.session_state.current_subject}.")
+        else:
+            table_placeholder.info(f"📝 No attendance folder found for {st.session_state.current_subject}.")
+    else:
+        table_placeholder.info("📝 Start face recognition to view attendance records.")
+
+# ---------------- Subject Management Section ----------------
+if st.session_state.current_subject:
+    st.markdown("---")
+    st.markdown('<h2 class="section-header">📋 Subject Management</h2>', unsafe_allow_html=True)
+    
+    mgmt_col1, mgmt_col2 = st.columns([1, 1])
+    
+    with mgmt_col1:
+        # Show all subjects with attendance
+        all_subjects = []
+        if os.path.exists(attendance_base_folder):
+            all_subjects = [d for d in os.listdir(attendance_base_folder) if os.path.isdir(os.path.join(attendance_base_folder, d))]
+        
+        if all_subjects:
+            st.markdown("**📚 Subjects with Attendance Records:**")
+            for subject in all_subjects:
+                subject_path = os.path.join(attendance_base_folder, subject)
+                files = [f for f in os.listdir(subject_path) if f.endswith(".csv")]
+                total_files = len(files)
+                st.markdown(f"• {subject} ({total_files} file{'s' if total_files != 1 else ''})")
+    
+    with mgmt_col2:
+        # Quick stats for current subject
+        if st.session_state.current_subject:
+            subject_path = os.path.join(attendance_base_folder, st.session_state.current_subject)
+            if os.path.exists(subject_path):
+                files = [f for f in os.listdir(subject_path) if f.endswith(".csv")]
+                st.markdown(f"**📊 {st.session_state.current_subject} Statistics:**")
+                st.markdown(f"• Total attendance files: {len(files)}")
+                st.markdown(f"• Current session records: {record_count}")
+                
+                # Calculate total unique students
+                all_students = set()
+                for file in files:
+                    try:
+                        df = pd.read_csv(os.path.join(subject_path, file), engine="python", on_bad_lines="skip")
+                        if len(df.columns) > 0:
+                            all_students.update(df.iloc[:, 0].dropna().unique())
+                    except:
+                        continue
+                st.markdown(f"• Unique students recorded: {len(all_students)}")
+
+# ---------------- Auto-refresh Logic ----------------
+if refresh:
+    time.sleep(2)  # Professional refresh rate for better UX
+    st.rerun()
