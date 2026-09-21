@@ -8,6 +8,8 @@ AI-based attendance system using face recognition. Built with Python, OpenCV, Fl
 
 FaceTrack Pro – Smart Attendance System
 FaceTrack Pro is an AI-based attendance system that uses face recognition to automatically identify students and record their attendance.
+
+
 🚀 Features
 •	Real-time face recognition using webcam
 •	Automatic attendance marking
@@ -17,6 +19,8 @@ FaceTrack Pro is an AI-based attendance system that uses face recognition to aut
 •	Flask REST API
 •	Email attendance notifications
 •	CSV-based attendance storage
+
+
 🛠️ Technologies
 •	Python
 •	OpenCV
@@ -25,6 +29,9 @@ FaceTrack Pro is an AI-based attendance system that uses face recognition to aut
 •	Pandas
 •	Streamlit
 •	Flask
+
+
+
 📂 Project Structure
 FaceTrack-Pro/
 ├── app.py
@@ -34,6 +41,9 @@ FaceTrack-Pro/
 ├── attendance/
 ├── live.jpg
 └── README.md
+
+
+
 ⚙️ Installation
 pip install streamlit pandas numpy opencv-python face-recognition Flask
 ▶️ Run the Project
@@ -43,8 +53,12 @@ Streamlit Dashboard:
 streamlit run app.py
 Flask API:
 python flask_app.py
+
+
 🔄 How It Works
 Known Faces → Face Detection → Face Recognition → Student Identified → Attendance Recorded → Streamlit Dashboard
+
+
 🔐 Security
 Do not upload passwords, API keys, email credentials, or private student/attendance data to GitHub.
 📌 Future Improvements
@@ -54,6 +68,8 @@ Do not upload passwords, API keys, email credentials, or private student/attenda
 •	Excel/PDF reports
 •	Admin login
 •	Liveness detection
+
+
 👨‍💻 Project
 FaceTrack Pro – AI-Based Smart Attendance System
 
